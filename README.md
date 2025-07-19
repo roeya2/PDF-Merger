@@ -51,7 +51,7 @@ PDF Merger Pro is an advanced utility for merging PDF files, Word documents, and
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-username/pdf-merger-pro.git
+    git clone https://github.com/roeya2/pdf-merger-pro.git
     cd pdf-merger-pro
     ```
 2.  **Install the required Python packages using pip:**
