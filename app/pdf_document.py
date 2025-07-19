@@ -8,6 +8,7 @@ from typing import List, Dict, Optional, Tuple, Any
 from app.common_imports import pymupdf
 
 from app.constants import LOGGER_NAME, MIN_ZOOM, MAX_ZOOM
+from app.exceptions import FileHandlingError, ValidationError
 
 class PDFDocument:
     """Represents a single PDF file managed by the application."""
@@ -35,11 +36,9 @@ class PDFDocument:
 
             self.logger.debug(f"Loaded metadata for {self.filename}: pages={self.page_count}")
         except FileNotFoundError:
-             self.logger.error(f"File not found: {self.filepath}")
-             self._reset_state()
-        except Exception as e:
-            self.logger.error(f"Error loading metadata for {self.filename} from {self.filepath}: {e}", exc_info=True)
-            self._reset_state()
+            raise FileHandlingError(f"File not found: {self.filepath}")
+        except pymupdf.errors.MuPDFError as e:
+            raise ValidationError(f"Error loading metadata for {self.filename} from {self.filepath}: {e}")
 
     def _reset_state(self):
         """Resets internal state on error."""
@@ -89,9 +88,8 @@ class PDFDocument:
 
                 return (img_data, effective_zoom_factor) # Return raw data and zoom factor
 
-        except Exception as e:
-            self.logger.error(f"Error generating preview data for {self.filename}, page {page_num} (zoom {effective_zoom_factor:.2f}): {e}", exc_info=True)
-            return None
+        except pymupdf.errors.MuPDFError as e:
+            raise ValidationError(f"Error generating preview data for {self.filename}, page {page_num} (zoom {effective_zoom_factor:.2f}): {e}")
 
     def close_document(self):
         """Closes the internal PyMuPDF document handle."""

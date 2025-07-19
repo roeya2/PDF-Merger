@@ -11,6 +11,7 @@ import tkinterdnd2 as tkdnd
 from app.pdf_merger_app import PDFMergerApp
 from app.constants import APP_NAME, APP_VERSION, LOGGER_NAME
 from app.common_imports import pymupdf, RARFILE_AVAILABLE
+from app.exceptions import PDFMergerError
 
 
 def main():
@@ -101,6 +102,18 @@ def main():
 
     except KeyboardInterrupt:
         logging.getLogger(LOGGER_NAME).info("Application terminated by user (KeyboardInterrupt).")
+
+    except PDFMergerError as e:
+        main_app_logger = logging.getLogger(LOGGER_NAME)
+        main_app_logger.critical(f"A critical application error occurred: {e}", exc_info=True)
+        if root_tk_instance and root_tk_instance.winfo_exists():
+            messagebox.showerror(
+                "Application Error",
+                f"A critical error occurred: {e}\n\nPlease check logs for details.",
+                parent=root_tk_instance
+            )
+        else:
+            print(f"Critical application error: {e}", file=sys.stderr)
 
     except Exception as e_mainloop:
         main_app_logger = logging.getLogger(LOGGER_NAME)

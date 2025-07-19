@@ -52,6 +52,7 @@ from app.tooltip import Tooltip
 from app.background_task import BackgroundTask
 from app.pdf_document import PDFDocument
 from app.config_manager import ConfigManager
+from app.exceptions import FileHandlingError
 
 # Import the new manager classes
 from app.app_core import AppCore
@@ -180,7 +181,7 @@ class PDFMergerApp:
                     try:
                         shutil.rmtree(temp_dir)
                         self.logger.debug(f"Cleaned up temp extraction directory: {temp_dir}")
-                    except Exception as cleanup_err:
+                    except (IOError, PermissionError) as cleanup_err:
                         self.logger.warning(f"Failed to cleanup temp extraction directory {temp_dir}: {cleanup_err}")
             
             for temp_dir in self.temp_conversion_dirs:
@@ -188,7 +189,7 @@ class PDFMergerApp:
                     try:
                         shutil.rmtree(temp_dir)
                         self.logger.debug(f"Cleaned up temp conversion directory: {temp_dir}")
-                    except Exception as cleanup_err:
+                    except (IOError, PermissionError) as cleanup_err:
                         self.logger.warning(f"Failed to cleanup temp conversion directory {temp_dir}: {cleanup_err}")
         finally:
             # This block will execute whether an exception occurred or not during the try block
@@ -295,6 +296,8 @@ class PDFMergerApp:
             if sys.platform == "win32": os.startfile(filepath)
             elif sys.platform == "darwin": os.system(f'open "{filepath}"')
             else: os.system(f'xdg-open "{filepath}"')
+        except FileNotFoundError:
+            raise FileHandlingError(f"File not found: {filepath}")
         except Exception as e:
             self.logger.error(f"Error opening file '{filepath}': {e}")
             self.show_message("Cannot Open File", f"Could not automatically open the file: {e}", "warning")

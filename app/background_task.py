@@ -5,6 +5,7 @@ import logging
 from typing import Any, Tuple, Optional
 
 from app.constants import LOGGER_NAME
+from app.exceptions import PDFMergerError
 
 class BackgroundTask:
     """Runs a target function in a separate thread and communicates results via a queue."""
@@ -43,7 +44,9 @@ class BackgroundTask:
             # If the exception is a specific, handled error, put its details on the queue.
             # Otherwise, put a generic error message.
             # Tasks can also return tuples like ("error_type", error_data) for specific errors.
-            if isinstance(e, RuntimeError): # Example: Catching RuntimeError specifically
+            if isinstance(e, PDFMergerError):
+                self.queue.put(("error", (type(e).__name__, str(e))))
+            elif isinstance(e, RuntimeError): # Example: Catching RuntimeError specifically
                  self.queue.put(("error", ("runtime_error", str(e))))
             elif isinstance(e, ValueError): # Example: Catching ValueError specifically
                  self.queue.put(("error", ("value_error", str(e))))

@@ -25,10 +25,7 @@ from app.constants import (
 from app.tooltip import Tooltip
 from app.pdf_document import PDFDocument
 from app.background_task import BackgroundTask
-
-class MergeAppendError(Exception):
-    """Custom exception for errors during PDF page appending in the merge task."""
-    pass
+from app.exceptions import MergeError, ValidationError, PasswordProtectedError
 
 class ActionPanel(ttk.LabelFrame):
     """Represents the Actions section (Merge, Validate) of the UI."""
@@ -88,9 +85,7 @@ class ActionPanel(ttk.LabelFrame):
              try:
                  output_path_obj.parent.mkdir(parents=True, exist_ok=True)
              except OSError as e:
-                  self.app.show_message("Output Directory Error", f"Could not create output directory:\n{output_path_obj.parent}\n{e}", "error")
-                  self.logger.error(f"Failed to create output directory {output_path_obj.parent}: {e}", exc_info=True)
-                  return # Cannot proceed if directory cannot be created
+                  raise MergeError(f"Could not create output directory:\n{output_path_obj.parent}\n{e}")
 
 
         # Check password requirement if enabled
@@ -177,30 +172,24 @@ class ActionPanel(ttk.LabelFrame):
                 reader = None
                 try:
                     reader = PdfReader(filepath)
-                    # Check for encryption - pypdf might need decryption if content is accessed
                     if reader.is_encrypted:
-                         # Suggestion: Implement password prompt if encrypted files are encountered here.
-                         self.logger.warning(f"Merge task: Document '{Path(filepath).name}' is encrypted. Password was not provided. Merging might fail or produce corrupted output if decryption is required.")
+                        raise PasswordProtectedError(f"File '{Path(filepath).name}' is password protected.")
 
                     merger.append(fileobj=reader, pages=selected_pages, import_outline=preserve_bookmarks)
 
                     total_pages_processed += len(selected_pages)
-                    # More granular page progress, capped by MERGE_PROGRESS_FILE_WEIGHT
                     page_progress_perc = (total_pages_processed / total_pages_to_process) * MERGE_PROGRESS_FILE_WEIGHT
                     self.app.queue_task_result(("success", ("progress_update", (STATUS_MERGE_APPENDING_PAGES.format(Path(filepath).name), page_progress_perc))))
 
+                except PasswordProtectedError as e_pwd:
+                    self.logger.error(f"Error appending pages from '{Path(filepath).name}': {e_pwd}", exc_info=True)
+                    raise MergeError(str(e_pwd)) from e_pwd
                 except Exception as e_append:
                     self.logger.error(f"Error appending pages from '{Path(filepath).name}': {e_append}", exc_info=True)
-                    # Report the error via the task queue instead of raising immediately
-                    error_details = {"file": filepath, "error": str(e_append)}
-                    self.app.queue_task_result(("error", ("merge_append_error", error_details))) # Specific error type for append issues
-                    # Optionally, continue or break the loop here based on desired behavior.
-                    # Breaking the loop and stopping the merge is usually better for critical errors.
-                    self.logger.error(f"Merge aborted due to error appending file: {Path(filepath).name}")
-                    # Re-raise a specific exception that the main task except block can catch to stop the process
-                    raise MergeAppendError(f"Failed to append pages from {Path(filepath).name}") from e_append
+                    raise MergeError(f"Failed to append pages from {Path(filepath).name}") from e_append
                 finally:
-                     if reader: reader.close() # Ensure reader is closed
+                    if reader:
+                        reader.close()
 
             # Finalize and save
             self.app.queue_task_result(("success", ("progress_update", (STATUS_MERGE_FINALIZING, MERGE_PROGRESS_FILE_WEIGHT + 1))))
@@ -222,8 +211,7 @@ class ActionPanel(ttk.LabelFrame):
                     merger.encrypt(password)
                     self.logger.debug("Merge task: PDF encrypted.")
                 except Exception as e_encrypt:
-                    self.logger.error(f"Error applying encryption: {e_encrypt}. Saving without encryption.", exc_info=True)
-                    raise RuntimeError(f"Failed to apply encryption: {e_encrypt}") from e_encrypt
+                    raise MergeError(f"Failed to apply encryption: {e_encrypt}") from e_encrypt
 
             self.app.queue_task_result(("success", ("progress_update", (STATUS_MERGE_WRITING, MERGE_PROGRESS_FILE_WEIGHT + MERGE_PROGRESS_FINALIZE_WEIGHT // 2))))
 
@@ -263,7 +251,7 @@ class ActionPanel(ttk.LabelFrame):
             failure_type = "unknown_merge_error"
             error_message = str(e)
 
-            if isinstance(e, MergeAppendError):
+            if isinstance(e, MergeError):
                  failure_type = "merge_append_failure"
                  # The specific file error was already queued by the loop
                  error_message = f"Merge failed during file appending. {error_message}"
@@ -369,7 +357,7 @@ class ActionPanel(ttk.LabelFrame):
                     try:
                         pdf_validation_doc.load_page(0)
                         self.logger.debug(f"Successfully validated first page of {doc_obj.filename}.")
-                    except Exception as page_err:
+                    except pymupdf.errors.MuPDFError as page_err:
                         issue_message = f"Error reading first page: {page_err}"
                         issues.append({
                              "filepath": doc_obj.filepath,
@@ -379,7 +367,7 @@ class ActionPanel(ttk.LabelFrame):
                         })
                         self.logger.warning(issue_message)
 
-            except Exception as e:
+            except pymupdf.errors.MuPDFError as e:
                  # Catch any other errors during opening or basic validation
                 issue_message = f"Error opening/validating: {e}"
                 issues.append({

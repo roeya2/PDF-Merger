@@ -23,6 +23,7 @@ from app.constants import (
 from app.tooltip import Tooltip
 from app.pdf_document import PDFDocument
 from app.config_manager import ConfigManager
+from app.exceptions import FileHandlingError
 # BackgroundTask is used by the main app to *start* tasks, not directly by panel methods
 
 # Check RARFILE_AVAILABLE status from centralized imports
@@ -298,9 +299,7 @@ class FileListPanel(ttk.LabelFrame):
 
         # Check for RAR support if a RAR file was selected
         if Path(archive_path).suffix.lower() == ".rar" and not RARFILE_AVAILABLE:
-            self.app.show_message("RAR Support Missing", "'rarfile' library not found. Cannot process RAR archives.\nInstall it using 'pip install rarfile'.", "warning")
-            self.logger.error(f"RAR archive '{archive_path}' selected, but 'rarfile' is not available.")
-            return
+            raise FileHandlingError("'rarfile' library not found. Cannot process RAR archives.\nInstall it using 'pip install rarfile'.")
 
         self.logger.info(f"Archive selected: {archive_path}")
         # Request the main app to process the archive
@@ -408,8 +407,7 @@ class FileListPanel(ttk.LabelFrame):
             self.app.request_preview_document(doc_idx, page_num=0) # Start preview from page 0
 
         except (IndexError, ValueError, tk.TclError) as e:
-            self.logger.error(f"Error getting document index for preview from double-click event on item '{item_id}': {e}")
-            self.app.set_preview_document(-1) # Ensure preview state is cleared
+            raise FileHandlingError(f"Error getting document index for preview from double-click event on item '{item_id}': {e}")
 
 
     def _on_file_tree_select(self):

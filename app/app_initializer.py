@@ -8,11 +8,12 @@ from pathlib import Path
 from typing import Optional
 
 from constants import (
-    LOGGER_NAME, DEFAULT_FONT_FAMILY, HEADER_FONT_SIZE, TITLE_FONT_SIZE, 
-    ACTION_BUTTON_FONT_SIZE, FALLBACK_FONT_SIZE, TOOLTIP_BACKGROUND, 
-    TOOLTIP_FOREGROUND, TOOLTIP_LABEL_PADDING, DEFAULT_WINDOW_WIDTH, 
+    LOGGER_NAME, DEFAULT_FONT_FAMILY, HEADER_FONT_SIZE, TITLE_FONT_SIZE,
+    ACTION_BUTTON_FONT_SIZE, FALLBACK_FONT_SIZE, TOOLTIP_BACKGROUND,
+    TOOLTIP_FOREGROUND, TOOLTIP_LABEL_PADDING, DEFAULT_WINDOW_WIDTH,
     DEFAULT_WINDOW_HEIGHT, MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT
 )
+from app.exceptions import PDFMergerError
 
 
 class AppInitializer:
@@ -51,11 +52,9 @@ class AppInitializer:
             header_font = tkfont.Font(family=DEFAULT_FONT_FAMILY, size=HEADER_FONT_SIZE, weight="bold")
             title_font = tkfont.Font(family=DEFAULT_FONT_FAMILY, size=TITLE_FONT_SIZE, weight="bold")
             action_button_font = tkfont.Font(family=DEFAULT_FONT_FAMILY, size=ACTION_BUTTON_FONT_SIZE, weight="bold")
-        except tk.TclError:
+        except tk.TclError as e:
             self.logger.warning(f"Could not create '{DEFAULT_FONT_FAMILY}' font. Falling back to system defaults.")
-            header_font = tkfont.Font(weight="bold", size=FALLBACK_FONT_SIZE + 2)
-            title_font = tkfont.Font(weight="bold", size=FALLBACK_FONT_SIZE + 4)
-            action_button_font = tkfont.Font(weight="bold", size=FALLBACK_FONT_SIZE)
+            raise PDFMergerError(f"Could not create font: {e}")
 
         style.configure("Header.TLabel", font=header_font)
         style.configure("Title.TLabel", font=title_font)
@@ -74,9 +73,8 @@ class AppInitializer:
             try:
                 self.app.root.geometry(saved_geometry)
                 self.logger.debug(f"Applied saved window geometry: {saved_geometry}")
-            except tk.TclError:
-                self.logger.warning(f"Invalid saved window geometry: '{saved_geometry}'. Using default.")
-                self.app.root.geometry(f"{DEFAULT_WINDOW_WIDTH}x{DEFAULT_WINDOW_HEIGHT}")
+            except tk.TclError as e:
+                raise PDFMergerError(f"Invalid saved window geometry: '{saved_geometry}'. Using default.")
         else:
             self.app.root.geometry(f"{DEFAULT_WINDOW_WIDTH}x{DEFAULT_WINDOW_HEIGHT}")
 
@@ -115,9 +113,7 @@ class AppInitializer:
                     self.logger.info(f"Successfully set application icon using iconphoto with {png_path}")
                     icon_set_by_photo = True
                 except tk.TclError as photo_err:
-                    self.logger.warning(f"Error loading PNG icon '{png_path}' with iconphoto: {photo_err}")
-                except Exception as other_err:
-                    self.logger.warning(f"Unexpected error loading PNG icon '{png_path}': {other_err}")
+                    raise PDFMergerError(f"Error loading PNG icon '{png_path}' with iconphoto: {photo_err}")
 
             # Also attempt to load .ico with iconbitmap (especially for Windows taskbar)
             ico_path = Path("assets/pdf-merger-pro-logo.ico")
@@ -127,12 +123,10 @@ class AppInitializer:
                     self.logger.info(f"Successfully set application icon using iconbitmap with {ico_path}")
                     icon_set_by_bitmap = True
                 except tk.TclError as ico_err:
-                    self.logger.warning(f"Error loading ICO icon '{ico_path}' with iconbitmap: {ico_err}")
-                except Exception as other_err:
-                    self.logger.warning(f"Unexpected error loading ICO icon '{ico_path}': {other_err}")
+                    raise PDFMergerError(f"Error loading ICO icon '{ico_path}' with iconbitmap: {ico_err}")
 
             if not icon_set_by_photo and not icon_set_by_bitmap:
                 self.logger.warning("No application icon could be set from pdf-merger-pro-logo.png or pdf-merger-pro-logo.ico.")
 
         except Exception as e:
-            self.logger.warning(f"General error during application icon setup: {e}", exc_info=True) 
+            self.logger.warning(f"General error during application icon setup: {e}", exc_info=True)

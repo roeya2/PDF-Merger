@@ -11,6 +11,7 @@ from app.constants import (
     DEFAULT_DPI, DEFAULT_LOG_OUTPUT, DEFAULT_LOG_LEVEL, DEFAULT_LOG_FILE_PATH,
     PROFILE_LIST_KEY, WINDOW_GEOMETRY_KEY, PANEDWINDOW_SASH_KEY
 )
+from app.exceptions import FileHandlingError
 
 class ConfigManager:
     """Manages application configuration including recent files/dirs, profiles, and window state."""
@@ -42,49 +43,27 @@ class ConfigManager:
             if self.config_path.exists():
                 with open(self.config_path, 'r', encoding='utf-8') as f:
                     loaded_config = json.load(f)
-                    # Merge loaded config into defaults, prioritizing loaded values
-                    # Create a new dict with defaults, then update with loaded values
                     temp_config = self.config.copy()
                     temp_config.update(loaded_config)
                     self.config = temp_config
                 self.logger.info(f"Configuration successfully loaded from {self.config_path}")
         except FileNotFoundError:
-             self.logger.info(f"Configuration file not found at {self.config_path}. Using default configuration.")
-             # Defaults are already in self.config, so nothing more to do
+            self.logger.info(f"Configuration file not found at {self.config_path}. Using default configuration.")
         except json.JSONDecodeError as e:
-            self.logger.error(f"Error decoding JSON from configuration file {self.config_path}: {e}. Using default configuration.", exc_info=True)
-            # Reset config to defaults if load fails (structure is defined in __init__)
-            self.config = {
-                "base_directory": str(Path.home()), "recent_directories": [], "default_output_dir": str(Path.home()),
-                "compression_level": DEFAULT_COMPRESSION, "preserve_bookmarks": DEFAULT_PRESERVE_BOOKMARKS, "profiles": {},
-                "output_password_protect": DEFAULT_PASSWORD_PROTECT, "output_color_mode": DEFAULT_COLOR_MODE,
-                "output_dpi": DEFAULT_DPI, "log_output": DEFAULT_LOG_OUTPUT, "log_level": DEFAULT_LOG_LEVEL,
-                "log_file_path": DEFAULT_LOG_FILE_PATH, WINDOW_GEOMETRY_KEY: "", PANEDWINDOW_SASH_KEY: {}
-            }
+            raise FileHandlingError(f"Error decoding JSON from configuration file {self.config_path}: {e}")
         except Exception as e:
-            self.logger.error(f"Unexpected error loading configuration from {self.config_path}: {e}. Using default configuration.", exc_info=True)
-            # Ensure config is reset to defaults on unexpected error
-            self.config = {
-                "base_directory": str(Path.home()), "recent_directories": [], "default_output_dir": str(Path.home()),
-                "compression_level": DEFAULT_COMPRESSION, "preserve_bookmarks": DEFAULT_PRESERVE_BOOKMARKS, "profiles": {},
-                "output_password_protect": DEFAULT_PASSWORD_PROTECT, "output_color_mode": DEFAULT_COLOR_MODE,
-                "output_dpi": DEFAULT_DPI, "log_output": DEFAULT_LOG_OUTPUT, "log_level": DEFAULT_LOG_LEVEL,
-                "log_file_path": DEFAULT_LOG_FILE_PATH, WINDOW_GEOMETRY_KEY: "", PANEDWINDOW_SASH_KEY: {}
-            }
-
+            raise FileHandlingError(f"Unexpected error loading configuration from {self.config_path}: {e}")
 
     def save_config(self):
         """Saves the current configuration to the JSON file."""
         try:
-            # Ensure the directory exists
             config_dir = self.config_path.parent
-            config_dir.mkdir(parents=True, exist_ok=True) # Create dir if it doesn't exist
-
+            config_dir.mkdir(parents=True, exist_ok=True)
             with open(self.config_path, 'w', encoding='utf-8') as f:
                 json.dump(self.config, f, indent=2)
             self.logger.info(f"Configuration successfully saved to {self.config_path}")
-        except Exception as e:
-            self.logger.error(f"Error saving configuration to {self.config_path}: {e}", exc_info=True)
+        except (IOError, PermissionError) as e:
+            raise FileHandlingError(f"Error saving configuration to {self.config_path}: {e}")
 
     def add_recent_directory(self, directory: str):
         """Adds a directory to the list of recent directories."""

@@ -25,7 +25,8 @@ from app.constants import (
     STATUS_CONVERTING_EPUB, STATUS_EPUB_CONVERTED, STATUS_EPUB_CONVERSION_ERROR, STATUS_EPUB_SUPPORT_MISSING,
     PROFILE_LIST_KEY, APP_NAME, APP_VERSION, STATUS_FILE_LIST_SAVED
 )
-from app.pdf_document import PDFDocument # Assuming PDFDocument is needed for some operations
+from app.pdf_document import PDFDocument
+from app.exceptions import FileHandlingError, CorruptFileError
 
 class FileOperations:
     """Handles all file-related operations for the PDF Merger Pro application,
@@ -574,43 +575,47 @@ class FileOperations:
             file_extension = Path(archive_path).suffix.lower()
 
             if file_extension == ".zip":
-                with zipfile.ZipFile(archive_path, 'r') as zip_ref:
-                    for member_name in zip_ref.namelist():
-                        expected_path = (temp_extract_dir_path / member_name).resolve()
-                        if not expected_path.is_relative_to(temp_extract_dir_path.resolve()):
-                            self.logger.error(f"Path traversal attempt in ZIP: {member_name}")
-                            raise ValueError("Archive contains unsafe paths.")
-                    for member_name in zip_ref.namelist():
-                        if member_name.lower().endswith(".pdf"):
-                            try:
-                                extracted_file_path_str = zip_ref.extract(member_name, path=temp_extract_dir_path)
-                                canonical_extracted_path = Path(extracted_file_path_str).resolve()
-                                if canonical_extracted_path.is_relative_to(temp_extract_dir_path.resolve()):
-                                     extracted_pdf_paths.append(str(canonical_extracted_path))
-                            except Exception as e_extract:
-                                self.logger.error(f"Error extracting '{member_name}' from ZIP: {e_extract}", exc_info=True)
+                try:
+                    with zipfile.ZipFile(archive_path, 'r') as zip_ref:
+                        for member_name in zip_ref.namelist():
+                            expected_path = (temp_extract_dir_path / member_name).resolve()
+                            if not expected_path.is_relative_to(temp_extract_dir_path.resolve()):
+                                self.logger.error(f"Path traversal attempt in ZIP: {member_name}")
+                                raise CorruptFileError("Archive contains unsafe paths.")
+                        for member_name in zip_ref.namelist():
+                            if member_name.lower().endswith(".pdf"):
+                                try:
+                                    extracted_file_path_str = zip_ref.extract(member_name, path=temp_extract_dir_path)
+                                    canonical_extracted_path = Path(extracted_file_path_str).resolve()
+                                    if canonical_extracted_path.is_relative_to(temp_extract_dir_path.resolve()):
+                                        extracted_pdf_paths.append(str(canonical_extracted_path))
+                                except Exception as e_extract:
+                                    self.logger.error(f"Error extracting '{member_name}' from ZIP: {e_extract}", exc_info=True)
+                except zipfile.BadZipFile as e:
+                    raise CorruptFileError(f"Corrupt ZIP file: {e}")
             elif file_extension == ".rar" and RARFILE_AVAILABLE:
-                 try:
-                     with rarfile.RarFile(archive_path, 'r') as rar_ref:
-                         if rar_ref.needs_multipart():
-                             raise ValueError("Multi-volume RAR archives are not supported.")
-                         for member in rar_ref.infolist():
-                             if not member.isdir() and member.filename.lower().endswith(".pdf"):
-                                 try:
-                                     rar_ref.extract(member, path=str(temp_extract_dir_path))
-                                     extracted_file_path_str = os.path.join(temp_extract_dir_path, member.filename)
-                                     canonical_extracted_path = Path(extracted_file_path_str).resolve()
-                                     if canonical_extracted_path.is_relative_to(temp_extract_dir_path.resolve()):
-                                          extracted_pdf_paths.append(str(canonical_extracted_path))
-                                 except Exception as e_extract:
-                                     self.logger.error(f"Error extracting '{member.filename}' from RAR: {e_extract}", exc_info=True)
-                 except rarfile.NoUnrarTool:
-                      self.logger.error("'unrar' tool not found for RAR processing.")
-                      raise rarfile.NoUnrarTool("RAR processing requires 'unrar' tool.")
+                try:
+                    with rarfile.RarFile(archive_path, 'r') as rar_ref:
+                        if rar_ref.needs_multipart():
+                            raise CorruptFileError("Multi-volume RAR archives are not supported.")
+                        for member in rar_ref.infolist():
+                            if not member.isdir() and member.filename.lower().endswith(".pdf"):
+                                try:
+                                    rar_ref.extract(member, path=str(temp_extract_dir_path))
+                                    extracted_file_path_str = os.path.join(temp_extract_dir_path, member.filename)
+                                    canonical_extracted_path = Path(extracted_file_path_str).resolve()
+                                    if canonical_extracted_path.is_relative_to(temp_extract_dir_path.resolve()):
+                                        extracted_pdf_paths.append(str(canonical_extracted_path))
+                                except Exception as e_extract:
+                                    self.logger.error(f"Error extracting '{member.filename}' from RAR: {e_extract}", exc_info=True)
+                except rarfile.BadRarFile as e:
+                    raise CorruptFileError(f"Corrupt RAR file: {e}")
+                except rarfile.NoUnrarTool:
+                    raise FileHandlingError("RAR processing requires 'unrar' tool to be installed and in the system's PATH.")
             elif file_extension == ".rar" and not RARFILE_AVAILABLE:
-                raise ImportError("RAR processing not available (rarfile library missing).")
+                raise FileHandlingError("RAR processing not available (rarfile library missing).")
             else:
-                raise ValueError(f"Unsupported archive type: {file_extension}")
+                raise FileHandlingError(f"Unsupported archive type: {file_extension}")
 
             temp_dir_str_for_tracking = str(temp_extract_dir_path) if extracted_pdf_paths else None
             if not extracted_pdf_paths and temp_extract_dir_path and temp_extract_dir_path.exists():
@@ -663,9 +668,8 @@ class FileOperations:
                 except Exception:
                     pass
                 self.config_manager.save_config()
-            except Exception as e:
-                self.logger.error(f"Error saving file list to {path}: {e}", exc_info=True)
-                self.app_core.app.show_message("Save Error", f"Could not save file list: {e}", "error")
+            except (IOError, json.JSONDecodeError) as e:
+                raise FileHandlingError(f"Could not save file list: {e}")
         else:
             self.logger.info("Save file list dialog cancelled.")
 
@@ -690,9 +694,7 @@ class FileOperations:
                 data = json.load(f)
 
             if PROFILE_LIST_KEY not in data or not isinstance(data[PROFILE_LIST_KEY], list):
-                self.app_core.app.show_message("Invalid File", f"The selected file '{Path(path).name}' does not appear to be a valid {APP_NAME} file list.", "error")
-                self.logger.error(f"Invalid file list format in {path}.")
-                return
+                raise FileHandlingError(f"The selected file '{Path(path).name}' does not appear to be a valid {APP_NAME} file list.")
 
             if self.app_core.get_documents() and not self.app_core.app.ask_yes_no("Confirm Load", "Clear current list and load files from the selected list?"):
                 self.logger.info("User cancelled loading file list over existing files.")
@@ -714,11 +716,5 @@ class FileOperations:
             except Exception:
                 pass
             self.config_manager.save_config()
-        except json.JSONDecodeError as e:
-            self.logger.error(f"Error decoding JSON while loading file list from {path}: {e}", exc_info=True)
-            self.app_core.app.show_message("Load Error", f"Could not decode JSON from file list:\n{e}", "error")
-            self.app_core.app.update_ui()
-        except Exception as e:
-            self.logger.error(f"Unexpected error loading file list from {path}: {e}", exc_info=True)
-            self.app_core.app.show_message("Load Error", f"Could not load file list:\n{e}", "error")
-            self.app_core.app.update_ui() 
+        except (IOError, json.JSONDecodeError) as e:
+            raise FileHandlingError(f"Could not load file list: {e}")
