@@ -1,0 +1,22 @@
+{
+  "base_directory": "C:\\Users\\user",
+  "recent_directories": [
+    "D:\\Google Drive\\University\\HUJI\\CIDR 2025",
+    "D:\\Downloads",
+    "K:\\My Drive\\Semester_H\\Modern Statistical (52311)\\Exercises\\Ex3\\Submission"
+  ],
+  "default_output_dir": "K:/My Drive/Semester_H/Modern Statistical (52311)/Exercises/Ex3/Submission",
+  "compression_level": "none",
+  "preserve_bookmarks": true,
+  "profiles": {},
+  "output_password_protect": false,
+  "output_color_mode": "Colorful (Original)",
+  "output_dpi": "Original",
+  "log_output": "both",
+  "log_level": "INFO",
+  "log_file_path": "pdf_merger.log",
+  "window_geometry": "1050x740+182+182",
+  "panedwindow_sash_positions": {
+    "files_preview_paned": 512
+  }
+}

@@ -1,0 +1,14 @@
+pypdf==4.2.0
+tkinterdnd2==0.3.0
+pymupdf
+
+# Optional dependencies
+# For Word document conversion support
+docx2pdf
+
+# For EPUB e-book conversion support
+ebooklib
+weasyprint
+
+# For RAR archive support (already optional in code)
+# rarfile

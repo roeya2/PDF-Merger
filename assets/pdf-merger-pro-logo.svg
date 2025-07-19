@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="250" cy="250" r="240" fill="#f8f9fa" stroke="#e9ecef" stroke-width="2"/>
+  
+  <!-- Main Icon Elements -->
+  <g transform="translate(100, 100) scale(0.6)">
+    <!-- PDF Documents Stack -->
+    <g>
+      <!-- Bottom Document -->
+      <rect x="110" y="180" width="280" height="340" rx="15" ry="15" fill="#e63946" filter="drop-shadow(3px 5px 2px rgba(0, 0, 0, 0.2))"/>
+      <rect x="160" y="250" width="180" height="20" rx="5" ry="5" fill="white" opacity="0.7"/>
+      <rect x="160" y="290" width="180" height="20" rx="5" ry="5" fill="white" opacity="0.7"/>
+      <rect x="160" y="330" width="120" height="20" rx="5" ry="5" fill="white" opacity="0.7"/>
+      
+      <!-- Middle Document -->
+      <rect x="150" y="130" width="280" height="340" rx="15" ry="15" fill="#457b9d" filter="drop-shadow(3px 5px 2px rgba(0, 0, 0, 0.2))"/>
+      <rect x="200" y="200" width="180" height="20" rx="5" ry="5" fill="white" opacity="0.7"/>
+      <rect x="200" y="240" width="180" height="20" rx="5" ry="5" fill="white" opacity="0.7"/>
+      <rect x="200" y="280" width="120" height="20" rx="5" ry="5" fill="white" opacity="0.7"/>
+      
+      <!-- Top Document -->
+      <rect x="190" y="80" width="280" height="340" rx="15" ry="15" fill="#1d3557" filter="drop-shadow(3px 5px 2px rgba(0, 0, 0, 0.2))"/>
+      <rect x="240" y="150" width="180" height="20" rx="5" ry="5" fill="white" opacity="0.7"/>
+      <rect x="240" y="190" width="180" height="20" rx="5" ry="5" fill="white" opacity="0.7"/>
+      <rect x="240" y="230" width="120" height="20" rx="5" ry="5" fill="white" opacity="0.7"/>
+    </g>
+    
+    <!-- Merge Arrow Symbol -->
+    <g>
+      <path d="M250,30 L190,130 H230 V180 H270 V130 H310 Z" fill="#f1faee" stroke="#1d3557" stroke-width="10" stroke-linejoin="round"/>
+    </g>
+    
+    <!-- "PRO" Badge -->
+    <g>
+      <circle cx="410" cy="400" r="50" fill="#fca311" filter="drop-shadow(2px 4px 3px rgba(0, 0, 0, 0.2))"/>
+      <text x="410" y="420" font-family="Arial, sans-serif" font-size="35" font-weight="bold" text-anchor="middle" fill="white">PRO</text>
+    </g>
+  </g>
+  
+  <!-- Text Below the Icon (Can be removed if you prefer just the icon) -->
+  <text x="250" y="430" font-family="Arial, sans-serif" font-size="35" font-weight="bold" text-anchor="middle" fill="#1d3557">PDF Merger Pro</text>
+</svg>
