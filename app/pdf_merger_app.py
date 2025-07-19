@@ -321,10 +321,6 @@ class PDFMergerApp:
         self.logger.debug("PDFMergerApp: Delegating request_add_from_archive to AppCore -> FileOperations.")
         self.app_core.file_ops.request_add_from_archive(archive_path)
 
-    def request_paste_files(self):
-        """Delegates adding files from clipboard to AppCore -> FileOperations."""
-        self.logger.debug("PDFMergerApp: Delegating request_paste_files to AppCore -> FileOperations.")
-        self.app_core.file_ops.request_paste_files()
 
     def request_remove_documents_by_index(self, indices_to_remove: List[int]):
         """Delegates removing documents to AppCore."""

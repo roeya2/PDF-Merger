@@ -50,64 +50,98 @@ class FileOperations:
 
     # --- File/Folder Addition Request Methods (Called by UI panels) ---
 
-    def request_add_files(self, file_paths: List[str]):
-        """Requests adding files by path (initiates background task via AppCore)."""
-        if not file_paths:
-            return
-        try:
-            self.config_manager.add_recent_directory(os.path.dirname(file_paths[0]))
-        except Exception:
-            pass  # Ignore errors saving recent dir
-        self.config_manager.save_config()
-        self.app_core.app.set_status_busy(f"Adding {len(file_paths)} files...", mode="indeterminate")
-        self.app_core.start_background_task(self.process_add_files_task, args=(file_paths,))
+    def add_files(self):
+        """Opens a file dialog to select PDF files and requests the app to add them."""
+        self.logger.info("Add PDF Files dialog initiated.")
+        # Use a default value for get, and then check if the result list is empty
+        recent_dirs = self.config_manager.config.get("recent_directories", [])
+        start_dir = recent_dirs[0] if recent_dirs else str(Path.home()) # Use first recent if exists, else home
 
-    def request_add_folder(self, folder_path: str):
-        """Requests adding files from a folder (initiates background task via AppCore)."""
-        if not folder_path:
-            return
-        try:
-            self.config_manager.add_recent_directory(folder_path)
-        except Exception:
-            pass
-        self.config_manager.save_config()
-
-        supported_files_in_folder = []
-        try:
-            for entry in os.scandir(folder_path):
-                entry_path = Path(entry.path)
-                if entry.is_file():
-                    file_extension = entry_path.suffix.lower()
-                    if file_extension == '.pdf' or file_extension in ['.docx', '.doc'] or file_extension == '.epub':
-                        supported_files_in_folder.append(str(entry_path.resolve()))
-        except OSError as e:
-            self.logger.error(f"Error scanning folder {folder_path}: {e}")
-            self.app_core.app.show_message("Folder Error", f"Could not read files from folder:\n{e}", "error")
-            return
-
-        if supported_files_in_folder:
-            self.logger.info(f"Found {len(supported_files_in_folder)} supported files (PDF, Word, and EPUB) in folder. Starting processing.")
-            self.app_core.app.set_status_busy(f"Adding {len(supported_files_in_folder)} files from folder...", mode="indeterminate")
-            self.app_core.start_background_task(self.process_add_files_task, args=(supported_files_in_folder,))
+        files = filedialog.askopenfilenames(
+            title="Select PDF, Word, and EPUB Files",
+            initialdir=start_dir,
+            filetypes=[PDF_FILETYPE, WORD_FILETYPES, DOCX_FILETYPE, DOC_FILETYPE, EPUB_FILETYPE, EBOOK_FILETYPES, ALL_FILES_FILETYPE],
+            parent=self.app_root
+        )
+        if files:
+            self.logger.info(f"Selected {len(files)} files to add. First: {files[0]}")
+            # Request the main app to process and add these files
+            self.app_core.start_background_task(self.process_add_files_task, args=(list(files),))
         else:
-            self.logger.info(f"No supported files found in {folder_path}.")
-            self.app_core.app.show_message("No Supported Files Found", f"No PDF files, Word documents, or EPUB e-books found in {folder_path}", "info")
+            self.logger.info("Add PDF Files dialog cancelled or no files selected.")
 
-    def request_add_from_archive(self, archive_path: str):
-        """Requests extracting and adding files from an archive (initiates background task via AppCore)."""
+    def add_folder(self):
+        """Opens a folder dialog, finds PDFs, and requests the app to add them."""
+        self.logger.info("Add Folder dialog initiated.")
+        recent_dirs = self.config_manager.config.get("recent_directories", [])
+        start_dir = recent_dirs[0] if recent_dirs else str(Path.home())
+
+        folder = filedialog.askdirectory(title="Select Folder Containing PDFs", initialdir=start_dir, parent=self.app_root)
+        if folder:
+            self.logger.info(f"Selected folder to add PDFs from: {folder}")
+            supported_files_in_folder = []
+            try:
+                for entry in os.scandir(folder):
+                    entry_path = Path(entry.path)
+                    if entry.is_file():
+                        file_extension = entry_path.suffix.lower()
+                        if file_extension == '.pdf' or file_extension in ['.docx', '.doc'] or file_extension == '.epub':
+                            supported_files_in_folder.append(str(entry_path.resolve()))
+            except OSError as e:
+                self.logger.error(f"Error scanning folder {folder}: {e}")
+                self.app_core.app.show_message("Folder Error", f"Could not read files from folder:\n{e}", "error")
+                return
+
+            if supported_files_in_folder:
+                self.logger.info(f"Found {len(supported_files_in_folder)} supported files (PDF, Word, and EPUB) in folder. Starting processing.")
+                self.app_core.app.set_status_busy(f"Adding {len(supported_files_in_folder)} files from folder...", mode="indeterminate")
+                self.app_core.start_background_task(self.process_add_files_task, args=(supported_files_in_folder,))
+            else:
+                self.logger.info(f"No supported files found in {folder}.")
+                self.app_core.app.show_message("No Supported Files Found", f"No PDF files, Word documents, or EPUB e-books found in {folder}", "info")
+        else:
+            self.logger.info("Add Folder dialog cancelled or no folder selected.")
+
+    def add_from_archive(self):
+        """Opens a file dialog to select an archive (ZIP/RAR) and requests the app to extract/add PDFs."""
+        self.logger.info("Add from Archive dialog initiated.")
+
+        # Use the RARFILE_AVAILABLE flag defined in THIS module's scope
+        if not RARFILE_AVAILABLE:
+             self.logger.warning("'rarfile' library not available. RAR archives cannot be processed.")
+             filetypes = [ZIP_FILETYPE, ALL_FILES_FILETYPE]
+        else:
+             filetypes = [ARCHIVE_FILETYPES, ZIP_FILETYPE, RAR_FILETYPE, ALL_FILES_FILETYPE]
+
+        # Use a default value for get, and then check if the result list is empty
+        recent_dirs = self.config_manager.config.get("recent_directories", [])
+        start_dir = recent_dirs[0] if recent_dirs else str(Path.home()) # Use first recent if exists, else home
+
+
+        archive_path = filedialog.askopenfilename(
+            title="Select Archive File (ZIP or RAR)",
+            initialdir=start_dir,
+            filetypes=filetypes,
+            parent=self.app_root
+        )
+
         if not archive_path:
+            self.logger.info("Add from Archive dialog cancelled or no file selected.")
             return
-        try:
-            self.config_manager.add_recent_directory(os.path.dirname(archive_path))
-        except Exception:
-            pass
-        self.config_manager.save_config()
 
-        self.app_core.app.set_status_busy(STATUS_EXTRACTION_STARTING.format(os.path.basename(archive_path)), mode="indeterminate")
+        # Check for RAR support if a RAR file was selected
+        if Path(archive_path).suffix.lower() == ".rar" and not RARFILE_AVAILABLE:
+            self.app_core.app.show_message("RAR Support Missing", "'rarfile' library not found. Cannot process RAR archives.\nInstall it using 'pip install rarfile'.", "warning")
+            self.logger.error(f"RAR archive '{archive_path}' selected, but 'rarfile' is not available.")
+            return
+
+        self.logger.info(f"Archive selected: {archive_path}")
+        # Request the main app to process the archive
         self.app_core.start_background_task(self.process_extract_from_archive_task, args=(archive_path,))
 
-    def request_paste_files(self):
-        """Requests adding file paths from the clipboard (initiates background task via AppCore)."""
+    def paste_files(self):
+        """Adds file paths from the clipboard."""
+        self.logger.info("Paste files action initiated.")
         try:
             clipboard_content = self.app_root.clipboard_get()
             self.logger.debug(f"Clipboard content obtained: '{clipboard_content[:100]}...'")

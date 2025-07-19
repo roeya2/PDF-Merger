@@ -41,17 +41,17 @@ class MenuManager:
         
         # Delegate menu actions to the appropriate panel methods
         file_menu.add_command(
-            label="Add PDF Files...", 
-            command=self.app.file_list_panel._add_files, 
+            label="Add PDF Files...",
+            command=self.app.app_core.file_ops.add_files,
             accelerator="Ctrl+O"
         )
         file_menu.add_command(
-            label="Add Folder...", 
-            command=self.app.file_list_panel._add_folder
+            label="Add Folder...",
+            command=self.app.app_core.file_ops.add_folder
         )
         file_menu.add_command(
-            label="Add from Archive (ZIP, RAR)...", 
-            command=self.app.file_list_panel._add_from_archive
+            label="Add from Archive (ZIP, RAR)...",
+            command=self.app.app_core.file_ops.add_from_archive
         )
         file_menu.add_separator()
         file_menu.add_command(

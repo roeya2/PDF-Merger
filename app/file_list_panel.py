@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import filedialog, messagebox, ttk
+from tkinter import messagebox, ttk
 from tkinter import font as tkfont
 import tkinter.simpledialog # Needed for askstring dialog
 import logging
@@ -49,11 +49,11 @@ class FileListPanel(ttk.LabelFrame):
         file_tools_frame = ttk.Frame(self)
         file_tools_frame.pack(fill=tk.X, pady=(0, 5))
 
-        self.add_files_button = ttk.Button(file_tools_frame, text="Add Files", command=self._add_files)
+        self.add_files_button = ttk.Button(file_tools_frame, text="Add Files", command=self.app.app_core.file_ops.add_files)
         self.add_files_button.pack(side=tk.LEFT, padx=1)
         Tooltip(self.add_files_button, "Add PDF files, Word documents (.docx, .doc), and EPUB e-books (.epub) to the list (Ctrl+O).")
 
-        self.add_folder_button = ttk.Button(file_tools_frame, text="Add Folder", command=self._add_folder)
+        self.add_folder_button = ttk.Button(file_tools_frame, text="Add Folder", command=self.app.app_core.file_ops.add_folder)
         self.add_folder_button.pack(side=tk.LEFT, padx=1)
         Tooltip(self.add_folder_button, "Add all PDF files, Word documents, and EPUB e-books from a selected folder.")
 
@@ -232,85 +232,10 @@ class FileListPanel(ttk.LabelFrame):
 
     # --- Internal File Management Actions ---
 
-    def _add_files(self):
-        """Opens a file dialog to select PDF files and requests the app to add them."""
-        self.logger.info("Add PDF Files dialog initiated.")
-        # Use a default value for get, and then check if the result list is empty
-        recent_dirs = self.app.config_manager.config.get("recent_directories", [])
-        start_dir = recent_dirs[0] if recent_dirs else str(Path.home()) # Use first recent if exists, else home
-
-        files = filedialog.askopenfilenames(
-            title="Select PDF, Word, and EPUB Files",
-            initialdir=start_dir,
-            filetypes=[PDF_FILETYPE, WORD_FILETYPES, DOCX_FILETYPE, DOC_FILETYPE, EPUB_FILETYPE, EBOOK_FILETYPES, ALL_FILES_FILETYPE],
-            parent=self.app.root # Use main app root as parent
-        )
-        if files:
-            self.logger.info(f"Selected {len(files)} files to add. First: {files[0]}")
-            # Request the main app to process and add these files
-            self.app.request_add_files(list(files))
-        else:
-            self.logger.info("Add PDF Files dialog cancelled or no files selected.")
-
-
-    def _add_folder(self):
-        """Opens a folder dialog, finds PDFs, and requests the app to add them."""
-        self.logger.info("Add Folder dialog initiated.")
-        # Use a default value for get, and then check if the result list is empty
-        recent_dirs = self.app.config_manager.config.get("recent_directories", [])
-        start_dir = recent_dirs[0] if recent_dirs else str(Path.home()) # Use first recent if exists, else home
-
-        folder = filedialog.askdirectory(title="Select Folder Containing PDFs", initialdir=start_dir, parent=self.app.root)
-        if folder:
-            self.logger.info(f"Selected folder to add PDFs from: {folder}")
-            # Request the main app to add files from this folder
-            self.app.request_add_folder(folder)
-        else:
-            self.logger.info("Add Folder dialog cancelled or no folder selected.")
-
-
-    def _add_from_archive(self):
-        """Opens a file dialog to select an archive (ZIP/RAR) and requests the app to extract/add PDFs."""
-        self.logger.info("Add from Archive dialog initiated.")
-
-        # Use the RARFILE_AVAILABLE flag defined in THIS module's scope
-        if not RARFILE_AVAILABLE:
-             self.logger.warning("'rarfile' library not available. RAR archives cannot be processed.")
-             filetypes = [ZIP_FILETYPE, ALL_FILES_FILETYPE]
-        else:
-             filetypes = [ARCHIVE_FILETYPES, ZIP_FILETYPE, RAR_FILETYPE, ALL_FILES_FILETYPE]
-
-        # Use a default value for get, and then check if the result list is empty
-        recent_dirs = self.app.config_manager.config.get("recent_directories", [])
-        start_dir = recent_dirs[0] if recent_dirs else str(Path.home()) # Use first recent if exists, else home
-
-
-        archive_path = filedialog.askopenfilename(
-            title="Select Archive File (ZIP or RAR)",
-            initialdir=start_dir,
-            filetypes=filetypes,
-            parent=self.app.root
-        )
-
-        if not archive_path:
-            self.logger.info("Add from Archive dialog cancelled or no file selected.")
-            return
-
-        # Check for RAR support if a RAR file was selected
-        if Path(archive_path).suffix.lower() == ".rar" and not RARFILE_AVAILABLE:
-            self.app.show_message("RAR Support Missing", "'rarfile' library not found. Cannot process RAR archives.\nInstall it using 'pip install rarfile'.", "warning")
-            self.logger.error(f"RAR archive '{archive_path}' selected, but 'rarfile' is not available.")
-            return
-
-        self.logger.info(f"Archive selected: {archive_path}")
-        # Request the main app to process the archive
-        self.app.request_add_from_archive(archive_path)
-
-
     def _paste_files(self):
         """Requests the app to add file paths from the clipboard."""
         self.logger.info("Paste files action initiated.")
-        self.app.request_paste_files()
+        self.app.app_core.file_ops.paste_files()
 
 
     def _remove_selected(self):
