@@ -1,8 +1,22 @@
 # PDF Merger Pro
 
-## Version 2.4.0
+**Version 2.4.0**
 
 PDF Merger Pro is an advanced utility for merging PDF files, Word documents, and EPUB e-books with a modern graphical user interface.
+
+## Table of Contents
+
+*   [Features](#features)
+*   [Getting Started](#getting-started)
+    *   [Requirements](#requirements)
+    *   [Installation](#installation)
+*   [Usage](#usage)
+*   [Supported File Types](#supported-file-types)
+    *   [Word Document Support](#word-document-support)
+    *   [EPUB E-book Support](#epub-e-book-support)
+*   [Logging](#logging)
+*   [Contributing](#contributing)
+*   [License](#license)
 
 ## Features
 
@@ -19,7 +33,9 @@ PDF Merger Pro is an advanced utility for merging PDF files, Word documents, and
 *   **Multi-threading:** Core operations like merging and file processing run in the background to keep the UI responsive.
 *   **File Validation:** Check files for common issues before merging (e.g., not found, encrypted, no pages).
 
-## Requirements
+## Getting Started
+
+### Requirements
 
 *   Python 3.7+
 *   Tkinter (usually included with Python)
@@ -31,18 +47,18 @@ PDF Merger Pro is an advanced utility for merging PDF files, Word documents, and
     *   `rarfile` (Required for RAR archive support. If you don't need RAR support, you can skip this, but the feature will be disabled).
 *   For RAR support using the `rarfile` library, the external command-line tool `unrar` must be installed on your system and available in your system's PATH.
 
-## Installation
+### Installation
 
-1.  Make sure you have Python installed.
-2.  Install the required Python packages using pip:
-
+1.  **Clone the repository:**
     ```bash
-    pip install -r requirements.txt
+    git clone https://github.com/your-username/pdf-merger-pro.git
+    cd pdf-merger-pro
     ```
+2.  **Install the required Python packages using pip:**
 
     **For full functionality (PDF + Word + RAR support):**
     ```bash
-    pip install tkinterdnd2 pypdf pymupdf docx2pdf rarfile
+    pip install -r requirements.txt
     ```
 
     **For PDF + Word support only (no RAR):**
@@ -54,8 +70,8 @@ PDF Merger Pro is an advanced utility for merging PDF files, Word documents, and
     ```bash
     pip install tkinterdnd2 pypdf pymupdf
     ```
-
-3.  Ensure the `unrar` command-line tool is installed and in your PATH if you require RAR support. (Installation varies by operating system).
+3.  **Install `unrar` (optional):**
+    Ensure the `unrar` command-line tool is installed and in your PATH if you require RAR support. (Installation varies by operating system).
 
 ## Usage
 
@@ -65,20 +81,21 @@ PDF Merger Pro is an advanced utility for merging PDF files, Word documents, and
     ```bash
     python main.py
     ```
-
 3.  Add PDF files, Word documents, or EPUB e-books, folders, or archives using the "File" menu or by dragging them into the application window.
 4.  Word documents (.docx, .doc) and EPUB e-books (.epub) will be automatically converted to PDF during the merging process.
 5.  Arrange files, set page ranges (double-click a file or use the button), and configure output options.
 6.  Click "Merge PDFs".
 
-## Word Document Support
+## Supported File Types
+
+### Word Document Support
 
 *   **Supported Formats:** .docx and .doc files
 *   **Automatic Conversion:** Word documents are converted to PDF behind the scenes using the `docx2pdf` library
 *   **Seamless Integration:** Converted Word documents appear in the file list and can be previewed, reordered, and have page ranges set just like regular PDFs
 *   **Error Handling:** If `docx2pdf` is not installed, Word files will be skipped with clear error messages and installation instructions
 
-## EPUB E-book Support
+### EPUB E-book Support
 
 *   **Supported Formats:** .epub files
 *   **Automatic Conversion:** EPUB e-books are converted to PDF behind the scenes using the `ebooklib` and `weasyprint` libraries
@@ -88,3 +105,11 @@ PDF Merger Pro is an advanced utility for merging PDF files, Word documents, and
 ## Logging
 
 The application logs information, warnings, and errors to a file named `pdf_merger.log` in the application's root directory.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a pull request or open an issue.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
