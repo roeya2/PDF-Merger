@@ -1,0 +1,7 @@
+2025-07-20 12:56:50,078 - PDFMergerPro - INFO - utils.setup_application_logging:63 - Logging configured. Level: INFO, Output: both
+2025-07-20 12:56:50,078 - PDFMergerPro - INFO - pdf_merger_app.__init__:83 - PDF Merger Pro v2.4.0 initializing.
+2025-07-20 12:56:50,080 - PDFMergerPro - INFO - app_initializer.load_application_icon:127 - Successfully set application icon using iconbitmap with assets/pdf-merger-pro-logo.ico
+2025-07-20 12:57:49,857 - PDFMergerPro - INFO - utils.setup_application_logging:63 - Logging configured. Level: INFO, Output: both
+2025-07-20 12:57:49,857 - PDFMergerPro - INFO - pdf_merger_app.__init__:83 - PDF Merger Pro v2.4.0 initializing.
+2025-07-20 12:58:25,494 - PDFMergerPro - INFO - utils.setup_application_logging:63 - Logging configured. Level: INFO, Output: both
+2025-07-20 12:58:25,494 - PDFMergerPro - INFO - pdf_merger_app.__init__:83 - PDF Merger Pro v2.4.0 initializing.

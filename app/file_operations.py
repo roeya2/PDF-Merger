@@ -241,7 +241,7 @@ class FileOperations:
             return None
             
         try:
-            from common_imports import ebooklib, epub, weasyprint
+            from app.common_imports import ebooklib, weasyprint, epub
             
             epub_file = Path(epub_path)
             if not epub_file.exists():
@@ -261,7 +261,9 @@ class FileOperations:
             html_content = []
             for item in book.get_items():
                 if item.get_type() == ebooklib.ITEM_DOCUMENT:
-                    content = item.get_content().decode('utf-8')
+                    content = item.get_content()
+                    if isinstance(content, bytes):
+                        content = content.decode('utf-8', errors='ignore')
                     html_content.append(content)
             
             if not html_content:

@@ -15,6 +15,7 @@ sys.modules['tkinter.messagebox'] = mock_tkinter.messagebox
 
 from app.file_operations import FileOperations
 from app.pdf_document import PDFDocument
+import ebooklib
 
 class TestFileOperations(unittest.TestCase):
 
@@ -122,6 +123,11 @@ class TestFileOperations(unittest.TestCase):
             args, kwargs = self.app_core.start_background_task.call_args
             self.assertEqual(len(kwargs['args'][0]), 2)
 
+    @patch('app.file_operations.convert')
+    def test_convert_word_to_pdf(self, mock_convert):
+        """Test converting a Word document to PDF."""
+        pdf_path = self.file_ops.convert_word_to_pdf(self.word_path, self.test_dir)
+        mock_convert.assert_called_once_with(self.word_path, pdf_path)
 
 if __name__ == '__main__':
     unittest.main()

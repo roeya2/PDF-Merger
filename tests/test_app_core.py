@@ -55,6 +55,23 @@ class TestAppCore(unittest.TestCase):
             self.app_core.check_task_queue()
             mock_handler.assert_called_once_with("test_error")
 
+    def test_move_document(self):
+        """Test moving a document up and down in the list."""
+        with patch('app.pdf_document.pymupdf.open'), patch('app.pdf_document.PDFDocument.load_metadata'):
+            doc1 = PDFDocument("dummy1.pdf")
+            doc2 = PDFDocument("dummy2.pdf")
+            self.app_core.app.pdf_documents = [doc1, doc2]
+
+            # Move doc1 down
+            with patch.object(self.app_core.app, 'file_list_panel') as mock_panel:
+                mock_panel.file_tree.get_children.return_value = []
+                self.app_core.move_document(0, 1)
+                self.assertEqual(self.app_core.get_documents(), [doc2, doc1])
+
+                # Move doc1 up
+                self.app_core.move_document(1, -1)
+                self.assertEqual(self.app_core.get_documents(), [doc1, doc2])
+
 
 if __name__ == '__main__':
     unittest.main()
