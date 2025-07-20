@@ -297,8 +297,8 @@ class AppCore:
                 if isinstance(data, tuple) and len(data) == 2:
                     message, value = data
                     self.app.status_bar.set_status(message)
-                    if self.app.status_bar.progress_bar.cget('mode') == 'determinate':
-                        self.app.status_bar.set_progress(value)
+                    if self.app.action_panel.progress_bar.cget('mode') == 'determinate':
+                        self.app.action_panel.progress_bar['value'] = value
                 else:
                     self.logger.warning(f"Received malformed progress_update data: {data}")
             else:

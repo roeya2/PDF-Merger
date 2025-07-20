@@ -52,6 +52,9 @@ class ActionPanel(ttk.LabelFrame):
         self.validate_button.pack(padx=5, pady=5, fill=tk.X)
         Tooltip(self.validate_button, "Check if all files in the list are valid and readable PDF documents before merging.")
 
+        self.progress_bar = ttk.Progressbar(self, orient="horizontal", mode="determinate")
+        self.progress_bar.pack(padx=5, pady=5, fill=tk.X, expand=True)
+
     def _start_merge_process(self):
         """Initiates the PDF merging process."""
         self.logger.info("Initiating merge process.")
@@ -404,7 +407,7 @@ class ActionPanel(ttk.LabelFrame):
         output_path, final_size_mb = data
 
         # Update UI status and progress bar via main app
-        self.app.status_bar.set_progress(100) # Ensure progress bar hits 100%
+        self.progress_bar['value'] = 100
         self.app.set_status(STATUS_MERGE_SUCCESS.format(Path(output_path).name, final_size_mb))
         self.logger.info(STATUS_MERGE_SUCCESS.format(output_path, final_size_mb))
 
