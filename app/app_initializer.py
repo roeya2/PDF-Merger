@@ -7,7 +7,7 @@ from tkinter import ttk
 from pathlib import Path
 from typing import Optional
 
-from constants import (
+from .constants import (
     LOGGER_NAME, DEFAULT_FONT_FAMILY, HEADER_FONT_SIZE, TITLE_FONT_SIZE, 
     ACTION_BUTTON_FONT_SIZE, FALLBACK_FONT_SIZE, TOOLTIP_BACKGROUND, 
     TOOLTIP_FOREGROUND, TOOLTIP_LABEL_PADDING, DEFAULT_WINDOW_WIDTH, 
