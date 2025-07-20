@@ -13,7 +13,7 @@ sys.modules['tkinter'] = mock_tkinter
 sys.modules['tkinter.filedialog'] = mock_tkinter.filedialog
 sys.modules['tkinter.messagebox'] = mock_tkinter.messagebox
 
-from app.file_operations import FileOperations, filedialog
+from app.file_operations import FileOperations
 from app.pdf_document import PDFDocument
 
 class TestFileOperations(unittest.TestCase):
@@ -77,7 +77,9 @@ class TestFileOperations(unittest.TestCase):
                 self.file_ops.process_extract_from_archive_task, args=(archive_path,)
             )
 
-    def test_save_and_load_file_list(self):
+    @patch('app.file_operations.filedialog.asksaveasfilename')
+    @patch('app.file_operations.filedialog.askopenfilename')
+    def test_save_and_load_file_list(self, mock_askopenfilename, mock_asksaveasfilename):
         """Test saving and loading a file list."""
         # Mock the documents in the app_core
         with patch('app.pdf_document.pymupdf.open'), patch('app.pdf_document.PDFDocument.load_metadata'):
@@ -97,7 +99,7 @@ class TestFileOperations(unittest.TestCase):
 
         # Mock the file dialog to return a path
         save_path = os.path.join(self.test_dir, "test_list.json")
-        filedialog.asksaveasfilename.return_value = save_path
+        mock_asksaveasfilename.return_value = save_path
 
         # Test saving
         self.file_ops.save_file_list()
@@ -110,7 +112,7 @@ class TestFileOperations(unittest.TestCase):
         self.assertEqual(data['pdf_merger_pro_list'][0]['filepath'], self.pdf_path)
 
         # Mock the file dialog for loading
-        filedialog.askopenfilename.return_value = save_path
+        mock_askopenfilename.return_value = save_path
 
         # Test loading
         with patch.object(self.file_ops, 'process_load_list_task') as mock_task:
