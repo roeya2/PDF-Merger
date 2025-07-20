@@ -11,4 +11,4 @@ ebooklib
 weasyprint
 
 # For RAR archive support (already optional in code)
-# rarfile
+# rarfilepytest
