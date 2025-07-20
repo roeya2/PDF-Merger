@@ -241,7 +241,7 @@ class FileOperations:
             return None
             
         try:
-            from app.common_imports import ebooklib, weasyprint, epub
+            from common_imports import ebooklib, epub, weasyprint
             
             epub_file = Path(epub_path)
             if not epub_file.exists():
@@ -261,9 +261,7 @@ class FileOperations:
             html_content = []
             for item in book.get_items():
                 if item.get_type() == ebooklib.ITEM_DOCUMENT:
-                    content = item.get_content()
-                    if isinstance(content, bytes):
-                        content = content.decode('utf-8', errors='ignore')
+                    content = item.get_content().decode('utf-8')
                     html_content.append(content)
             
             if not html_content:
@@ -490,6 +488,12 @@ class FileOperations:
                 else:
                     self.logger.warning(f"Skipping PDF with 0 pages: {path.name}")
                     problematic_files.append((path_str, "No pages found or load error"))
+            except FileNotFoundError:
+                self.logger.error(f"File not found: {path_str}", exc_info=True)
+                problematic_files.append((path_str, "File not found"))
+            except PermissionError:
+                self.logger.error(f"Permission denied for file: {path_str}", exc_info=True)
+                problematic_files.append((path_str, "Permission denied"))
             except Exception as e:
                 self.logger.error(f"Error processing file {path}: {e}", exc_info=True)
                 problematic_files.append((path_str, f"General error: {e}"))

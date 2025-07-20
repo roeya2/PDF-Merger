@@ -269,14 +269,33 @@ class PDFMergerApp:
          # Re-enable merge button if files exist (handled by _check_task_queue final block)
 
 
-    def show_message(self, title: str, message: str, level: str = "info", parent=None):
-        """Shows a message box."""
+    def show_message(self, title: str, message: str, level: str = "info", parent=None, details: str = None):
+        """Shows a message box with optional details."""
         # Use parent=self.root by default if not specified
         msg_parent = parent if parent else self.root
-        if level == "info": messagebox.showinfo(title, message, parent=msg_parent)
-        elif level == "warning": messagebox.showwarning(title, message, parent=msg_parent)
-        elif level == "error": messagebox.showerror(title, message, parent=msg_parent)
-        else: messagebox.showinfo(title, message, parent=msg_parent)
+
+        if details:
+            # Create a custom dialog for messages with details
+            dialog = tk.Toplevel(msg_parent)
+            dialog.title(title)
+            dialog.transient(msg_parent)
+            dialog.grab_set()
+
+            main_message = ttk.Label(dialog, text=message, wraplength=400)
+            main_message.pack(padx=20, pady=10)
+
+            text_area = tk.Text(dialog, wrap='word', height=10, width=60)
+            text_area.insert('1.0', details)
+            text_area.config(state='disabled')
+            text_area.pack(padx=20, pady=5, fill='both', expand=True)
+
+            ok_button = ttk.Button(dialog, text="OK", command=dialog.destroy)
+            ok_button.pack(pady=10)
+        else:
+            if level == "info": messagebox.showinfo(title, message, parent=msg_parent)
+            elif level == "warning": messagebox.showwarning(title, message, parent=msg_parent)
+            elif level == "error": messagebox.showerror(title, message, parent=msg_parent)
+            else: messagebox.showinfo(title, message, parent=msg_parent)
 
     def ask_yes_no(self, title: str, message: str, parent=None) -> bool:
         """Shows a yes/no confirmation message box."""

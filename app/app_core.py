@@ -319,6 +319,10 @@ class AppCore:
                 self.app.show_message("Operation Failed", f"A critical error occurred during the operation:\n\n{error_message}", "error")
             elif error_type == "value_error":
                 self.app.show_message("Operation Issue", f"A configuration or input issue prevented the operation:\n\n{error_message}", "warning")
+            elif error_type == "file_not_found":
+                self.app.show_message("File Not Found", f"The following file could not be found:\n\n{error_message}", "error")
+            elif error_type == "permission_denied":
+                self.app.show_message("Permission Denied", f"You do not have permission to access the following file:\n\n{error_message}", "error")
             elif error_type == "generic_exception":
                 self.app.show_message("Unexpected Error", f"An unexpected error occurred:\n\n{error_message}\n\nPlease check logs for details.", "error")
             elif error_type == "merge_failed":
