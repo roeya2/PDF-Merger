@@ -1,11 +1,7 @@
 {
   "base_directory": "C:\\Users\\user",
-  "recent_directories": [
-    "D:\\Google Drive\\University\\HUJI\\CIDR 2025",
-    "D:\\Downloads",
-    "K:\\My Drive\\Semester_H\\Modern Statistical (52311)\\Exercises\\Ex3\\Submission"
-  ],
-  "default_output_dir": "K:/My Drive/Semester_H/Modern Statistical (52311)/Exercises/Ex3/Submission",
+  "recent_directories": [],
+  "default_output_dir": "",
   "compression_level": "none",
   "preserve_bookmarks": true,
   "profiles": {},
@@ -19,4 +15,5 @@
   "panedwindow_sash_positions": {
     "files_preview_paned": 512
   }
+
 }
