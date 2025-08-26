@@ -12,3 +12,6 @@ weasyprint
 
 # For RAR archive support (already optional in code)
 # rarfile
+
+# For performance monitoring (optional)
+psutil
