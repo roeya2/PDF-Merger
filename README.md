@@ -1,8 +1,8 @@
-# PDF Merger Pro
+# PDF Merger
 
 ## Version 2.7.0
 
-PDF Merger Pro is an advanced utility for merging PDF files, Word documents, and EPUB e-books with a modern graphical user interface and comprehensive output control.
+PDF Merger is an advanced utility for merging PDF files, Word documents, and EPUB e-books with a modern graphical user interface and comprehensive output control.
 
 ### Recent Improvements (v2.7.0)
 - **🎨 Modern UI/UX Design**: Complete visual overhaul with modern color palette, icons, and styling
@@ -31,7 +31,7 @@ PDF Merger Pro is an advanced utility for merging PDF files, Word documents, and
 
 ## Features
 
-### File Processing
+### File cessing
 *   **EPUB E-book Support:** Add EPUB e-books (.epub) alongside PDFs and Word documents - they are automatically converted to PDF during merging.
 *   **Word Document Support:** Add Word documents (.docx, .doc) alongside PDFs - they are automatically converted to PDF during merging.
 *   **Intelligent File Detection:** Auto-detects file types using content signatures for better accuracy than extension-based detection.
@@ -49,7 +49,7 @@ PDF Merger Pro is an advanced utility for merging PDF files, Word documents, and
 *   **Advanced Compression:** Five compression levels (none, fast, normal, high, maximum) with granular control
 *   **Metadata Editing:** Complete control over PDF properties (title, author, subject, keywords) with validation
 *   **Bookmark Preservation:** Optionally preserve existing bookmarks (outlines) from source PDFs.
-*   **Configuration Profiles:** Save and load lists of files and their associated settings as profiles.
+*   **Configuration files:** Save and load lists of files and their associated settings as profiles.
 *   **Output Options:** Configure output settings including password protection and compression level.
 *   **Recent Folders:** Quick access to frequently used directories with favorites support.
 
@@ -267,4 +267,5 @@ The codebase maintains high standards:
 - **Memory Management**: Efficient file processing with proper cleanup
 - **Lazy Loading**: Components initialized only when needed
 - **Caching**: Icon and style resources cached for performance
+
 - **Progress Tracking**: Real-time progress updates for user feedback
